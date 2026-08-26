@@ -27,12 +27,15 @@
         display: contents !important;
     }
 
+    /* Legacy Jellyfin keeps .skinHeader at z-index 999 while the drawer/mask use
+     * 1099/1098. Preserve that stacking relationship even though display:contents
+     * removes the original header stacking box. */
     html:has(#reactRoot .MuiAppBar-root > .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img)
     #reactRoot div:has(> .mainDrawer):has(> .skinHeader):has(> .mainDrawerHandle) > .skinHeader .headerLeft {
         position: fixed !important;
         top: 14px;
         left: 18px;
-        z-index: 1202;
+        z-index: 999;
         display: flex !important;
         align-items: center;
         width: auto;
@@ -60,8 +63,13 @@
         display: inline-flex !important;
     }
 
-    /* The MUI AppBar remains the owner of the right-side Auto actions, but the
-     * enclosing strip is transparent just like Abyss' legacy .skinHeader. */
+    /* The MUI AppBar remains the owner of the right-side Auto actions, but it
+     * follows the legacy header's stacking level so Jellyfin's legacy drawer
+     * mask and drawer cover the complete header while open. */
+    #reactRoot .MuiAppBar-root:has(> .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img) {
+        z-index: 999 !important;
+    }
+
     #reactRoot .MuiAppBar-root:has(> .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img)
     > .MuiToolbar-root:first-child {
         position: relative;
@@ -95,7 +103,7 @@
         position: fixed !important;
         top: 14px !important;
         left: 50% !important;
-        z-index: 1203 !important;
+        z-index: 999 !important;
         display: block !important;
         width: fit-content !important;
         max-width: min(70vw, 860px) !important;
