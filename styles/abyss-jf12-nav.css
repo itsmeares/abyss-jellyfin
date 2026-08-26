@@ -92,8 +92,7 @@
      * receives the exact same Home / Favourites / Seerr / Requests content,
      * active state and Abyss .emby-tabs styling as Desktop Legacy.
      */
-    html:has(#reactRoot .MuiAppBar-root > .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img)
-        :has(#reactRoot .headerTabs.sectionTabs .emby-tab-button)
+    html:has(#reactRoot .MuiAppBar-root > .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img):has(#reactRoot .headerTabs.sectionTabs .emby-tab-button)
     #reactRoot .headerTabs.sectionTabs:has(.emby-tab-button) {
         position: fixed !important;
         top: 14px !important;
@@ -108,14 +107,12 @@
         overflow: visible !important;
     }
 
-    html:has(#reactRoot .MuiAppBar-root > .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img)
-        :has(#reactRoot .headerTabs.sectionTabs .emby-tab-button)
+    html:has(#reactRoot .MuiAppBar-root > .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img):has(#reactRoot .headerTabs.sectionTabs .emby-tab-button)
     #reactRoot .headerTabs.sectionTabs:has(.emby-tab-button) .emby-tabs {
         margin: 0 !important;
     }
 
-    html:has(#reactRoot .MuiAppBar-root > .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img)
-        :has(#reactRoot .headerTabs.sectionTabs .emby-tab-button)
+    html:has(#reactRoot .MuiAppBar-root > .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img):has(#reactRoot .headerTabs.sectionTabs .emby-tab-button)
     #reactRoot .headerTabs.sectionTabs:has(.emby-tab-button) .emby-tabs-slider {
         max-width: min(70vw, 860px);
         margin: 0 !important;
@@ -125,8 +122,7 @@
         white-space: nowrap;
     }
 
-    html:has(#reactRoot .MuiAppBar-root > .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img)
-        :has(#reactRoot .headerTabs.sectionTabs .emby-tab-button)
+    html:has(#reactRoot .MuiAppBar-root > .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img):has(#reactRoot .headerTabs.sectionTabs .emby-tab-button)
     #reactRoot .headerTabs.sectionTabs:has(.emby-tab-button) .emby-tabs-slider::-webkit-scrollbar {
         display: none;
     }
@@ -221,8 +217,8 @@
         font-weight: 600;
     }
 
-    body:has(#indexPage.homePage:not(.hide))
     html:not(:has(#reactRoot .headerTabs.sectionTabs .emby-tab-button))
+    body:has(#indexPage.homePage:not(.hide))
     #reactRoot .MuiAppBar-root:has(> .MuiToolbar-root > .MuiStack-root:not(:has(> a.MuiButton-colorPrimary[href*="/home?tab=1"])) a.MuiButton-root .MuiButton-startIcon img)
     > .MuiToolbar-root:first-child > .MuiStack-root
     > a.MuiButton-root:has(.MuiButton-startIcon img) {
