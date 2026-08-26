@@ -4,10 +4,12 @@ import test from 'node:test';
 
 const entrypoint = await readFile(new URL('../abyss-v12.css', import.meta.url), 'utf8');
 const modern = await readFile(new URL('../styles/abyss-jf12.css', import.meta.url), 'utf8');
+const offsetAppBar = await readFile(new URL('../styles/abyss-jf12-offset-appbar.css', import.meta.url), 'utf8');
 
-test('Jellyfin 12 entrypoint keeps the legacy base and adds the modern bridge', () => {
+test('Jellyfin 12 entrypoint keeps the legacy base and adds the modern bridges', () => {
   assert.match(entrypoint, /@import url\('\.\/abyss\.css'\);/);
   assert.match(entrypoint, /@import url\('\.\/styles\/abyss-jf12\.css'\);/);
+  assert.match(entrypoint, /@import url\('\.\/styles\/abyss-jf12-offset-appbar\.css'\);/);
 });
 
 test('modern bridge targets stable Jellyfin MUI primitives', () => {
@@ -23,12 +25,13 @@ test('modern bridge targets stable Jellyfin MUI primitives', () => {
     '.MuiTabs-root',
     '.MuiFilledInput-root'
   ]) {
-    assert.match(modern, new RegExp(selector.replaceAll('.', '\\.') ));
+    assert.match(modern, new RegExp(selector.replaceAll('.', '\\.')));
   }
 });
 
 test('modern bridge never depends on generated Emotion class hashes', () => {
   assert.doesNotMatch(modern, /\.css-[A-Za-z0-9_-]+/);
+  assert.doesNotMatch(offsetAppBar, /\.css-[A-Za-z0-9_-]+/);
 });
 
 test('main app-bar styling requires a real direct toolbar child', () => {
@@ -44,6 +47,14 @@ test('portal surfaces are gated to the Jellyfin 12 modern shell', () => {
 test('video OSD gets an explicit modern-toolbar bridge', () => {
   assert.match(modern, /\.skinHeader\.osdHeader:has\(> \.MuiToolbar-root\)/);
   assert.match(modern, /\.skinHeader\.osdHeader > \.MuiToolbar-root/);
+});
+
+test('OffsetAppBar guard keeps vertical spacing in the observed content box', () => {
+  assert.match(offsetAppBar, /gap:\s*8px/);
+  assert.match(offsetAppBar, /padding:\s*0 !important/);
+  assert.match(offsetAppBar, /margin:\s*0 12px/);
+  assert.doesNotMatch(offsetAppBar, /padding-top:/);
+  assert.doesNotMatch(offsetAppBar, /margin-top:\s*[1-9]/);
 });
 
 test('bridge keeps responsive and reduced-motion handling', () => {
