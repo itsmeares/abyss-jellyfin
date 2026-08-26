@@ -5,11 +5,13 @@ import test from 'node:test';
 const entrypoint = await readFile(new URL('../abyss-v12.css', import.meta.url), 'utf8');
 const modern = await readFile(new URL('../styles/abyss-jf12.css', import.meta.url), 'utf8');
 const offsetAppBar = await readFile(new URL('../styles/abyss-jf12-offset-appbar.css', import.meta.url), 'utf8');
+const navigation = await readFile(new URL('../styles/abyss-jf12-nav.css', import.meta.url), 'utf8');
 
 test('Jellyfin 12 entrypoint keeps the legacy base and adds the modern bridges', () => {
   assert.match(entrypoint, /@import url\('\.\/abyss\.css'\);/);
   assert.match(entrypoint, /@import url\('\.\/styles\/abyss-jf12\.css'\);/);
   assert.match(entrypoint, /@import url\('\.\/styles\/abyss-jf12-offset-appbar\.css'\);/);
+  assert.match(entrypoint, /@import url\('\.\/styles\/abyss-jf12-nav\.css'\);/);
 });
 
 test('modern bridge targets stable Jellyfin MUI primitives', () => {
@@ -29,9 +31,10 @@ test('modern bridge targets stable Jellyfin MUI primitives', () => {
   }
 });
 
-test('modern bridge never depends on generated Emotion class hashes', () => {
+test('modern bridges never depend on generated Emotion class hashes', () => {
   assert.doesNotMatch(modern, /\.css-[A-Za-z0-9_-]+/);
   assert.doesNotMatch(offsetAppBar, /\.css-[A-Za-z0-9_-]+/);
+  assert.doesNotMatch(navigation, /\.css-[A-Za-z0-9_-]+/);
 });
 
 test('main app-bar styling requires a real direct toolbar child', () => {
@@ -57,8 +60,24 @@ test('OffsetAppBar guard keeps vertical spacing in the observed content box', ()
   assert.doesNotMatch(offsetAppBar, /margin-top:\s*[1-9]/);
 });
 
+test('desktop modern navigation reuses Jellyfin native legacy drawer', () => {
+  assert.match(navigation, /:has\(> \.mainDrawer\):has\(> \.skinHeader\):has\(> \.mainDrawerHandle\)/);
+  assert.match(navigation, /\.mainDrawerButton:not\(\.hide\)/);
+  assert.doesNotMatch(navigation, /abyss-modern-drawer/);
+  assert.doesNotMatch(navigation, /data-abyss-modern/);
+});
+
+test('desktop modern navigation keeps custom links centered and libraries in drawer', () => {
+  assert.match(navigation, /\.MuiStack-root/);
+  assert.match(navigation, /target="_blank"/);
+  assert.match(navigation, /href\*="\/home\?tab=1"/);
+  assert.match(navigation, /:not\(:has\(\.MuiButton-startIcon img\)\)/);
+  assert.match(navigation, /content:\s*"Home"/);
+});
+
 test('bridge keeps responsive and reduced-motion handling', () => {
   assert.match(modern, /@media \(max-width: 899px\)/);
   assert.match(modern, /@media \(max-width: 599px\)/);
   assert.match(modern, /@media \(prefers-reduced-motion: reduce\)/);
+  assert.match(navigation, /@media \(min-width: 900px\)/);
 });
