@@ -1,0 +1,46 @@
+/* OffsetAppBar geometry guard for Jellyfin 12.
+ *
+ * OffsetAppBar's ResizeObserver uses entry.contentRect.height for its spacer.
+ * Padding on the AppBar itself is therefore not represented in the spacer and
+ * can make page content slide underneath the themed toolbar. Keep vertical
+ * geometry inside the AppBar content box: use flex gap between toolbars and
+ * horizontal-only margins on the toolbar surfaces.
+ */
+
+#reactRoot .MuiAppBar-root:has(> .MuiToolbar-root) {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 0 !important;
+}
+
+#reactRoot .MuiAppBar-root:has(> .MuiToolbar-root) > .MuiToolbar-root {
+    margin: 0 12px;
+}
+
+#reactRoot .MuiAppBar-root:has(> .MuiToolbar-root) > .MuiToolbar-root + .MuiToolbar-root {
+    margin-top: 0;
+}
+
+@media (max-width: 1199px) {
+    #reactRoot .MuiAppBar-root:has(> .MuiToolbar-root) {
+        padding: 0 !important;
+    }
+
+    #reactRoot .MuiAppBar-root:has(> .MuiToolbar-root) > .MuiToolbar-root {
+        margin-inline: 8px;
+    }
+}
+
+@media (max-width: 899px) {
+    #reactRoot .MuiAppBar-root:has(> .MuiToolbar-root) {
+        padding: 0 !important;
+        gap: 6px;
+    }
+}
+
+@media (max-width: 599px) {
+    #reactRoot .MuiAppBar-root:has(> .MuiToolbar-root) > .MuiToolbar-root + .MuiToolbar-root {
+        margin-top: 0;
+    }
+}
