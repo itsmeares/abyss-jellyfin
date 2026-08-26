@@ -67,8 +67,14 @@ test('desktop modern navigation reuses Jellyfin native legacy drawer', () => {
   assert.doesNotMatch(navigation, /data-abyss-modern/);
 });
 
-test('desktop modern navigation keeps custom links centered and libraries in drawer', () => {
-  assert.match(navigation, /\.MuiStack-root/);
+test('desktop modern navigation prefers the real legacy center tab strip', () => {
+  assert.match(navigation, /\.headerTabs\.sectionTabs \.emby-tab-button/);
+  assert.match(navigation, /\.headerTabs\.sectionTabs:has\(\.emby-tab-button\)/);
+  assert.match(navigation, /visibility:\s*hidden !important/);
+  assert.match(navigation, /html:not\(:has\(#reactRoot \.headerTabs\.sectionTabs \.emby-tab-button\)\)/);
+});
+
+test('fallback center navigation keeps Home and custom links while libraries stay in drawer', () => {
   assert.match(navigation, /target="_blank"/);
   assert.match(navigation, /href\*="\/home\?tab=1"/);
   assert.match(navigation, /:not\(:has\(\.MuiButton-startIcon img\)\)/);
