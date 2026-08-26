@@ -1,0 +1,7 @@
+/* Abyss for Jellyfin 12 Auto/Modern UI.
+ *
+ * The base stylesheet continues to style Jellyfin's legacy/content DOM while
+ * the compatibility bridge styles the React/MUI shell introduced in Jellyfin 12.
+ */
+@import url('./abyss.css');
+@import url('./styles/abyss-jf12.css');
