@@ -1,22 +1,24 @@
 /* Jellyfin 12 Auto/Modern navigation compatibility.
  *
- * Jellyfin still mounts and initialises the legacy AppHeader + NavDrawer in the
- * modern app because legacy content views depend on them. The modern root only
- * hides their wrapper. Reusing that native drawer is substantially safer than
- * recreating Jellyfin navigation in theme JavaScript: permissions, custom menu
- * links, libraries, settings, logout and route handling remain Jellyfin-owned.
+ * Jellyfin 12 still mounts the legacy AppHeader + NavDrawer because legacy
+ * content views depend on them. In Auto/Modern mode React hides that header and
+ * renders a MUI toolbar instead. Abyss reuses the native legacy drawer button
+ * and, when available, the native legacy header tabs themselves. That gives the
+ * Auto client the same Home/Favourites/custom-tab pill that Desktop Legacy gets
+ * instead of trying to imitate it with MUI buttons.
  */
 
 @media (min-width: 900px) {
-    /* Gate every override on the actual modern client toolbar. Dashboard and
-     * video-only shells must not accidentally expose the hidden legacy header. */
+    /* Modern user-view toolbar detector. ServerButton is the only primary-nav
+     * link with an image in its startIcon, which gives us a stable shell gate
+     * without depending on generated Emotion .css-* hashes. */
     html:has(#reactRoot .MuiAppBar-root > .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img)
     #reactRoot div:has(> .mainDrawer):has(> .skinHeader):has(> .mainDrawerHandle) {
         display: contents !important;
     }
 
-    /* Keep Jellyfin's real legacy drawer alive but expose only its already-bound
-     * menu button from the hidden header. */
+    /* Expose only the useful pieces of Jellyfin's already-initialised legacy
+     * header: the real drawer button and the real section tabs. */
     html:has(#reactRoot .MuiAppBar-root > .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img)
     #reactRoot div:has(> .mainDrawer):has(> .skinHeader):has(> .mainDrawerHandle) > .skinHeader,
     html:has(#reactRoot .MuiAppBar-root > .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img)
@@ -29,8 +31,6 @@
     html:has(#reactRoot .MuiAppBar-root > .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img)
     #reactRoot div:has(> .mainDrawer):has(> .skinHeader):has(> .mainDrawerHandle) > .skinHeader .headerRight,
     html:has(#reactRoot .MuiAppBar-root > .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img)
-    #reactRoot div:has(> .mainDrawer):has(> .skinHeader):has(> .mainDrawerHandle) > .skinHeader .headerTabs,
-    html:has(#reactRoot .MuiAppBar-root > .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img)
     #reactRoot div:has(> .mainDrawer):has(> .skinHeader):has(> .mainDrawerHandle) > .skinHeader .pageTitle,
     html:has(#reactRoot .MuiAppBar-root > .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img)
     #reactRoot div:has(> .mainDrawer):has(> .skinHeader):has(> .mainDrawerHandle) > .skinHeader .headerBackButton,
@@ -41,12 +41,13 @@
         display: none !important;
     }
 
+    /* Real legacy hamburger, with its original Jellyfin click handler. */
     html:has(#reactRoot .MuiAppBar-root > .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img)
     #reactRoot .mainDrawerButton:not(.hide) {
         position: fixed !important;
         top: 17px;
         left: 18px;
-        z-index: 1201;
+        z-index: 1202;
         display: inline-flex !important;
         align-items: center;
         justify-content: center;
@@ -67,8 +68,8 @@
         color: rgb(var(--abyss-accent)) !important;
     }
 
-    /* The modern top toolbar stays structurally native, but visually becomes the
-     * same three-part legacy header: menu / centred pill nav / right actions. */
+    /* The MUI AppBar remains the owner of the right-side Auto/Modern actions,
+     * but its old full-width glass strip disappears. */
     #reactRoot .MuiAppBar-root:has(> .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img)
     > .MuiToolbar-root:first-child {
         position: relative;
@@ -83,6 +84,69 @@
         overflow: visible;
     }
 
+    /* ---------------------------------------------------------------------
+     * Preferred centre navigation: the actual Desktop Legacy tabs
+     * ---------------------------------------------------------------------
+     * Enhanced/custom tabs are often injected only into Jellyfin's legacy
+     * header. If that tab strip has buttons, use it verbatim. This means Auto
+     * receives the exact same Home / Favourites / Seerr / Requests content,
+     * active state and Abyss .emby-tabs styling as Desktop Legacy.
+     */
+    html:has(#reactRoot .MuiAppBar-root > .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img)
+        :has(#reactRoot .headerTabs.sectionTabs .emby-tab-button)
+    #reactRoot .headerTabs.sectionTabs:has(.emby-tab-button) {
+        position: fixed !important;
+        top: 14px !important;
+        left: 50% !important;
+        z-index: 1203 !important;
+        display: block !important;
+        width: fit-content !important;
+        max-width: min(70vw, 860px) !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        transform: translateX(-50%) !important;
+        overflow: visible !important;
+    }
+
+    html:has(#reactRoot .MuiAppBar-root > .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img)
+        :has(#reactRoot .headerTabs.sectionTabs .emby-tab-button)
+    #reactRoot .headerTabs.sectionTabs:has(.emby-tab-button) .emby-tabs {
+        margin: 0 !important;
+    }
+
+    html:has(#reactRoot .MuiAppBar-root > .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img)
+        :has(#reactRoot .headerTabs.sectionTabs .emby-tab-button)
+    #reactRoot .headerTabs.sectionTabs:has(.emby-tab-button) .emby-tabs-slider {
+        max-width: min(70vw, 860px);
+        margin: 0 !important;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scrollbar-width: none;
+        white-space: nowrap;
+    }
+
+    html:has(#reactRoot .MuiAppBar-root > .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img)
+        :has(#reactRoot .headerTabs.sectionTabs .emby-tab-button)
+    #reactRoot .headerTabs.sectionTabs:has(.emby-tab-button) .emby-tabs-slider::-webkit-scrollbar {
+        display: none;
+    }
+
+    /* Once real legacy tabs exist, suppress the modern UserViewNav entirely.
+     * The right-hand MUI action area remains untouched. */
+    html:has(#reactRoot .headerTabs.sectionTabs .emby-tab-button)
+    #reactRoot .MuiAppBar-root:has(> .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img)
+    > .MuiToolbar-root:first-child > .MuiStack-root {
+        visibility: hidden !important;
+        pointer-events: none !important;
+    }
+
+    /* ---------------------------------------------------------------------
+     * Fallback centre navigation
+     * ---------------------------------------------------------------------
+     * Some clean Jellyfin installs do not populate legacy home tabs in modern
+     * mode. In that case retain a compact native Home/Favourites fallback.
+     */
+    html:not(:has(#reactRoot .headerTabs.sectionTabs .emby-tab-button))
     #reactRoot .MuiAppBar-root:has(> .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img)
     > .MuiToolbar-root:first-child > .MuiStack-root {
         position: absolute !important;
@@ -91,12 +155,12 @@
         z-index: 2;
         display: flex !important;
         align-items: center;
-        max-width: min(58vw, 720px);
-        padding: 3px;
-        border: 1px solid rgba(245, 245, 247, 0.16);
-        border-radius: 999px;
-        background-color: rgba(var(--abyss-glass-tint), 0.76);
-        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.16);
+        max-width: min(70vw, 860px);
+        padding: 5px 2.5px;
+        border: 1px solid rgba(87, 87, 87, 0.18);
+        border-radius: 50px;
+        background-color: rgba(var(--abyss-glass-tint), 0.9);
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
         transform: translate(-50%, -50%);
         overflow-x: auto;
         overflow-y: hidden;
@@ -104,32 +168,36 @@
         white-space: nowrap;
     }
 
+    html:not(:has(#reactRoot .headerTabs.sectionTabs .emby-tab-button))
     #reactRoot .MuiAppBar-root:has(> .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img)
     > .MuiToolbar-root:first-child > .MuiStack-root::-webkit-scrollbar {
         display: none;
     }
 
+    html:not(:has(#reactRoot .headerTabs.sectionTabs .emby-tab-button))
     #reactRoot .MuiAppBar-root:has(> .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img)
     > .MuiToolbar-root:first-child > .MuiStack-root .MuiButton-root {
         flex: 0 0 auto;
         min-height: 34px;
-        padding: 6px 13px;
-        border-radius: 999px;
+        margin: 0 2.5px;
+        padding: 0.5em 1.5em;
+        border-radius: 50px;
         font-size: 0.84rem;
         font-weight: 550;
     }
 
-    /* UserViewNav mixes custom menu links and libraries. Desktop Legacy keeps
-     * custom links in the top pill and libraries in the drawer, so do the same.
-     * ServerButton is identified by its native image; Favourites by its route. */
+    /* Keep custom menu links if modern Jellyfin exposes them; libraries still
+     * belong in the drawer, like Desktop Legacy. */
+    html:not(:has(#reactRoot .headerTabs.sectionTabs .emby-tab-button))
     #reactRoot .MuiAppBar-root:has(> .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img)
     > .MuiToolbar-root:first-child > .MuiStack-root
     > a.MuiButton-root:not([target="_blank"]):not([href*="/home?tab=1"]):not(:has(.MuiButton-startIcon img)) {
         display: none !important;
     }
 
-    /* ServerButton is really Home in the modern shell. Keep its native route and
-     * accessibility semantics while matching the legacy visible label. */
+    /* ServerButton is the modern shell's Home control. Keep the real route but
+     * show the same label as Legacy. */
+    html:not(:has(#reactRoot .headerTabs.sectionTabs .emby-tab-button))
     #reactRoot .MuiAppBar-root:has(> .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img)
     > .MuiToolbar-root:first-child > .MuiStack-root
     > a.MuiButton-root:has(.MuiButton-startIcon img) {
@@ -137,12 +205,14 @@
         padding-inline: 14px !important;
     }
 
+    html:not(:has(#reactRoot .headerTabs.sectionTabs .emby-tab-button))
     #reactRoot .MuiAppBar-root:has(> .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img)
     > .MuiToolbar-root:first-child > .MuiStack-root
     > a.MuiButton-root:has(.MuiButton-startIcon img) .MuiButton-startIcon {
         display: none !important;
     }
 
+    html:not(:has(#reactRoot .headerTabs.sectionTabs .emby-tab-button))
     #reactRoot .MuiAppBar-root:has(> .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img)
     > .MuiToolbar-root:first-child > .MuiStack-root
     > a.MuiButton-root:has(.MuiButton-startIcon img)::after {
@@ -151,9 +221,8 @@
         font-weight: 600;
     }
 
-    /* Home receives the same filled pill state as Favourites/libraries when the
-     * home tab is active. Favourites' native color=primary state wins on tab 1. */
     body:has(#indexPage.homePage:not(.hide))
+    html:not(:has(#reactRoot .headerTabs.sectionTabs .emby-tab-button))
     #reactRoot .MuiAppBar-root:has(> .MuiToolbar-root > .MuiStack-root:not(:has(> a.MuiButton-colorPrimary[href*="/home?tab=1"])) a.MuiButton-root .MuiButton-startIcon img)
     > .MuiToolbar-root:first-child > .MuiStack-root
     > a.MuiButton-root:has(.MuiButton-startIcon img) {
@@ -163,6 +232,7 @@
     }
 
     @supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+        html:not(:has(#reactRoot .headerTabs.sectionTabs .emby-tab-button))
         #reactRoot .MuiAppBar-root:has(> .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img)
         > .MuiToolbar-root:first-child > .MuiStack-root {
             -webkit-backdrop-filter: blur(var(--abyss-glass-blur));
