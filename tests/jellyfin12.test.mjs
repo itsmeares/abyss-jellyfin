@@ -73,6 +73,13 @@ test('desktop Auto navigation reuses Jellyfin native legacy controls', () => {
   assert.doesNotMatch(navigation, /data-abyss-modern/);
 });
 
+test('desktop Auto header keeps Jellyfin legacy drawer stacking', () => {
+  assert.match(navigation, /\.headerLeft\s*\{[^}]*z-index:\s*999;/s);
+  assert.match(navigation, /\.MuiAppBar-root:has\([^}]+\)\s*\{[^}]*z-index:\s*999 !important;/s);
+  assert.match(navigation, /\.headerTabs\.sectionTabs:has\(\.emby-tab-button\)\s*\{[^}]*z-index:\s*999 !important;/s);
+  assert.doesNotMatch(navigation, /z-index:\s*12(?:02|03)/);
+});
+
 test('desktop Auto navigation uses only the real legacy centre tab strip', () => {
   assert.match(navigation, /\.headerTabs\.sectionTabs \.emby-tab-button/);
   assert.match(navigation, /\.headerTabs\.sectionTabs:has\(\.emby-tab-button\)/);
