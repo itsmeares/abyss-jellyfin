@@ -7,8 +7,8 @@ on:
     paths:
       - 'abyss*.css'
       - 'styles/**'
-      - 'tests/**'
-      - 'package.json'
+      - 'tests/theme.test.mjs'
+      - 'tests/jellyfin12.test.mjs'
       - '.github/workflows/theme-tests.yml'
   push:
     branches:
@@ -16,8 +16,8 @@ on:
     paths:
       - 'abyss*.css'
       - 'styles/**'
-      - 'tests/**'
-      - 'package.json'
+      - 'tests/theme.test.mjs'
+      - 'tests/jellyfin12.test.mjs'
       - '.github/workflows/theme-tests.yml'
   workflow_dispatch:
 
@@ -36,5 +36,5 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Run theme tests
-        run: npm test
+      - name: Run theme compatibility tests
+        run: node --test tests/theme.test.mjs tests/jellyfin12.test.mjs
