@@ -1,0 +1,263 @@
+/* Jellyfin 12 Auto/Modern navigation layout.
+ *
+ * The modern client does not render the desktop drawer button at >= md, so the
+ * companion runtime marks the native toolbar and adds a small menu trigger.
+ * This stylesheet then arranges the native React/MUI controls to match Abyss'
+ * Jellyfin 10/11 navigation: menu at left, compact pill navigation centered,
+ * actions at right.
+ */
+
+@media (min-width: 900px) {
+    #reactRoot [data-abyss-modern-primary="true"] {
+        position: relative;
+        min-height: 52px !important;
+        padding: 4px 8px !important;
+        border: 0 !important;
+        border-radius: 0 !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        overflow: visible;
+    }
+
+    /* Keep the native navigation controls and React Router links, but float the
+     * stack into the centre like Desktop Legacy. */
+    #reactRoot [data-abyss-modern-center="true"] {
+        position: absolute !important;
+        top: 50%;
+        left: 50%;
+        z-index: 2;
+        display: flex !important;
+        align-items: center;
+        max-width: min(58vw, 720px);
+        padding: 3px;
+        border: 1px solid rgba(245, 245, 247, 0.16);
+        border-radius: 999px;
+        background-color: rgba(var(--abyss-glass-tint), 0.76);
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.16);
+        transform: translate(-50%, -50%);
+        overflow-x: auto;
+        overflow-y: hidden;
+        scrollbar-width: none;
+        white-space: nowrap;
+    }
+
+    #reactRoot [data-abyss-modern-center="true"]::-webkit-scrollbar {
+        display: none;
+    }
+
+    #reactRoot [data-abyss-modern-center="true"] .MuiButton-root {
+        flex: 0 0 auto;
+        min-height: 34px;
+        padding: 6px 13px;
+        border-radius: 999px;
+        font-size: 0.84rem;
+        font-weight: 550;
+    }
+
+    /* Libraries belong in the left drawer in the legacy layout, not in the
+     * centred primary navigation. */
+    #reactRoot [data-abyss-modern-center="true"] [data-abyss-nav-role="library"] {
+        display: none !important;
+    }
+
+    /* ServerButton is the modern shell's Home control. Preserve its real native
+     * link while presenting it with the same label used by Desktop Legacy. */
+    #reactRoot [data-abyss-nav-role="home"] {
+        font-size: 0 !important;
+    }
+
+    #reactRoot [data-abyss-nav-role="home"] .MuiButton-startIcon {
+        display: none !important;
+    }
+
+    #reactRoot [data-abyss-nav-role="home"]::after {
+        content: "Home";
+        font-size: 0.84rem;
+        font-weight: 600;
+    }
+
+    #reactRoot [data-abyss-nav-role="home"][data-abyss-active="true"],
+    #reactRoot [data-abyss-modern-center="true"] .MuiButton-colorPrimary {
+        background: rgb(var(--abyss-accent)) !important;
+        color: #121212 !important;
+        font-weight: 700;
+    }
+
+    /* Companion runtime trigger. It intentionally uses no generated Emotion
+     * class names and therefore survives Jellyfin rebuilds. */
+    #reactRoot .abyss-modern-menu-button {
+        position: relative;
+        z-index: 3;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 auto;
+        width: 42px;
+        height: 42px;
+        margin: 0 4px 0 0;
+        padding: 9px;
+        border: 0;
+        border-radius: 12px;
+        background: transparent;
+        color: rgba(245, 245, 247, 0.86);
+        cursor: pointer;
+        transition:
+            background-color 0.2s var(--abyss-ease),
+            color 0.2s var(--abyss-ease),
+            transform 0.2s var(--abyss-ease);
+    }
+
+    #reactRoot .abyss-modern-menu-button:hover {
+        background: rgba(var(--abyss-accent), 0.14);
+        color: rgb(var(--abyss-accent));
+    }
+
+    #reactRoot .abyss-modern-menu-button:active {
+        transform: scale(0.94);
+    }
+
+    #reactRoot .abyss-modern-menu-button svg {
+        width: 21px;
+        height: 21px;
+        fill: currentColor;
+    }
+}
+
+/* Runtime drawer. This lives under body instead of #reactRoot so React cannot
+ * remove it during route changes. */
+#abyss-modern-drawer-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1398;
+    background: rgba(0, 0, 0, 0.38);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s var(--abyss-ease);
+}
+
+#abyss-modern-drawer {
+    position: fixed;
+    top: 16px;
+    bottom: 16px;
+    left: 16px;
+    z-index: 1399;
+    box-sizing: border-box;
+    width: min(300px, calc(100vw - 32px));
+    padding: 10px;
+    border: 1px solid rgba(245, 245, 247, 0.2);
+    border-radius: 24px;
+    background-color: rgba(var(--abyss-glass-tint), 0.92);
+    box-shadow: 0 18px 60px rgba(0, 0, 0, 0.42);
+    color: rgba(245, 245, 247, 0.92);
+    transform: translateX(calc(-100% - 32px));
+    transition: transform 0.22s var(--abyss-ease-snappy);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+body.abyss-modern-drawer-open #abyss-modern-drawer-backdrop {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+body.abyss-modern-drawer-open #abyss-modern-drawer {
+    transform: translateX(0);
+}
+
+#abyss-modern-drawer .abyss-modern-drawer-title {
+    padding: 12px 12px 10px;
+    font-family: "Google Sans", sans-serif;
+    font-size: 1rem;
+    font-weight: 650;
+    color: rgba(245, 245, 247, 0.96);
+}
+
+#abyss-modern-drawer .abyss-modern-drawer-section {
+    margin: 4px 0 10px;
+}
+
+#abyss-modern-drawer .abyss-modern-drawer-section-title {
+    padding: 8px 12px 5px;
+    font-family: "Google Sans", sans-serif;
+    font-size: 0.72rem;
+    font-weight: 650;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: rgba(245, 245, 247, 0.44);
+}
+
+#abyss-modern-drawer .abyss-modern-drawer-link {
+    display: flex;
+    align-items: center;
+    min-height: 42px;
+    margin: 2px 0;
+    padding: 8px 11px;
+    border-radius: 12px;
+    color: rgba(245, 245, 247, 0.84);
+    font-family: "Google Sans", sans-serif;
+    font-size: 0.92rem;
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+    transition:
+        background-color 0.2s var(--abyss-ease),
+        color 0.2s var(--abyss-ease);
+}
+
+#abyss-modern-drawer .abyss-modern-drawer-link:hover {
+    background: rgba(var(--abyss-accent), 0.14);
+    color: rgb(var(--abyss-accent));
+}
+
+#abyss-modern-drawer .abyss-modern-drawer-link[data-abyss-selected="true"] {
+    background: rgb(var(--abyss-accent));
+    color: #121212;
+    font-weight: 700;
+}
+
+#abyss-modern-drawer .abyss-modern-drawer-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 30px;
+    width: 30px;
+    height: 30px;
+    margin-right: 8px;
+}
+
+#abyss-modern-drawer .abyss-modern-drawer-icon svg,
+#abyss-modern-drawer .abyss-modern-drawer-icon img {
+    width: 20px;
+    height: 20px;
+    max-width: 20px;
+    max-height: 20px;
+}
+
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    @media (min-width: 900px) {
+        #reactRoot [data-abyss-modern-center="true"] {
+            -webkit-backdrop-filter: blur(var(--abyss-glass-blur));
+            backdrop-filter: blur(var(--abyss-glass-blur));
+        }
+    }
+
+    #abyss-modern-drawer {
+        -webkit-backdrop-filter: blur(var(--abyss-glass-blur));
+        backdrop-filter: blur(var(--abyss-glass-blur));
+    }
+}
+
+@media (max-width: 899px) {
+    #abyss-modern-drawer-backdrop,
+    #abyss-modern-drawer {
+        display: none !important;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #abyss-modern-drawer-backdrop,
+    #abyss-modern-drawer,
+    #reactRoot .abyss-modern-menu-button {
+        transition-duration: 0.01ms !important;
+    }
+}
