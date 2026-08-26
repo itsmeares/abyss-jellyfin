@@ -60,25 +60,39 @@ test('OffsetAppBar guard keeps vertical spacing in the observed content box', ()
   assert.doesNotMatch(offsetAppBar, /margin-top:\s*[1-9]/);
 });
 
-test('desktop modern navigation reuses Jellyfin native legacy drawer', () => {
+test('desktop Auto navigation reuses Jellyfin native legacy controls', () => {
   assert.match(navigation, /:has\(> \.mainDrawer\):has\(> \.skinHeader\):has\(> \.mainDrawerHandle\)/);
-  assert.match(navigation, /\.mainDrawerButton:not\(\.hide\)/);
+  assert.match(navigation, /\.headerLeft > \.headerButton:not\(\.hide\)/);
+  assert.match(navigation, /\.mainDrawerHandle/);
   assert.doesNotMatch(navigation, /abyss-modern-drawer/);
   assert.doesNotMatch(navigation, /data-abyss-modern/);
 });
 
-test('desktop modern navigation prefers the real legacy center tab strip', () => {
+test('desktop Auto navigation uses only the real legacy centre tab strip', () => {
   assert.match(navigation, /\.headerTabs\.sectionTabs \.emby-tab-button/);
   assert.match(navigation, /\.headerTabs\.sectionTabs:has\(\.emby-tab-button\)/);
-  assert.match(navigation, /visibility:\s*hidden !important/);
-  assert.match(navigation, /html:not\(:has\(#reactRoot \.headerTabs\.sectionTabs \.emby-tab-button\)\)/);
+  assert.match(navigation, /> \.MuiToolbar-root:first-child > \.MuiStack-root\s*\{[^}]*display:\s*none !important/s);
+
+  // Do not invent a MUI Home/Favourites replacement when maintabsmanager
+  // clears the real legacy strip on detail and other non-tabbed views.
+  assert.doesNotMatch(navigation, /Fallback centre navigation/i);
+  assert.doesNotMatch(navigation, /content:\s*["']Home["']/);
+  assert.doesNotMatch(navigation, /html:not\(:has\(#reactRoot \.headerTabs\.sectionTabs \.emby-tab-button\)\)/);
 });
 
-test('fallback center navigation keeps Home and custom links while libraries stay in drawer', () => {
-  assert.match(navigation, /target="_blank"/);
-  assert.match(navigation, /href\*="\/home\?tab=1"/);
-  assert.match(navigation, /:not\(:has\(\.MuiButton-startIcon img\)\)/);
-  assert.match(navigation, /content:\s*"Home"/);
+test('Jellyfin remains the source of truth for legacy back and home visibility', () => {
+  const forcedHiddenRules = navigation.match(/[^{}]+\{[^{}]*display:\s*none !important;[^{}]*\}/gs) || [];
+
+  assert.equal(
+    forcedHiddenRules.some(rule => rule.includes('.headerBackButton')),
+    false,
+    'compatibility CSS must not force-hide Jellyfin legacy back button'
+  );
+  assert.equal(
+    forcedHiddenRules.some(rule => rule.includes('.headerHomeButton')),
+    false,
+    'compatibility CSS must not force-hide Jellyfin legacy home button'
+  );
 });
 
 test('bridge keeps responsive and reduced-motion handling', () => {
