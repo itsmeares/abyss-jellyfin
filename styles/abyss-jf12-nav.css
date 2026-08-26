@@ -1,14 +1,76 @@
-/* Jellyfin 12 Auto/Modern navigation layout.
+/* Jellyfin 12 Auto/Modern navigation compatibility.
  *
- * The modern client does not render the desktop drawer button at >= md, so the
- * companion runtime marks the native toolbar and adds a small menu trigger.
- * This stylesheet then arranges the native React/MUI controls to match Abyss'
- * Jellyfin 10/11 navigation: menu at left, compact pill navigation centered,
- * actions at right.
+ * Jellyfin still mounts and initialises the legacy AppHeader + NavDrawer in the
+ * modern app because legacy content views depend on them. The modern root only
+ * hides their wrapper. Reusing that native drawer is substantially safer than
+ * recreating Jellyfin navigation in theme JavaScript: permissions, custom menu
+ * links, libraries, settings, logout and route handling remain Jellyfin-owned.
  */
 
 @media (min-width: 900px) {
-    #reactRoot [data-abyss-modern-primary="true"] {
+    /* Gate every override on the actual modern client toolbar. Dashboard and
+     * video-only shells must not accidentally expose the hidden legacy header. */
+    html:has(#reactRoot .MuiAppBar-root > .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img)
+    #reactRoot div:has(> .mainDrawer):has(> .skinHeader):has(> .mainDrawerHandle) {
+        display: contents !important;
+    }
+
+    /* Keep Jellyfin's real legacy drawer alive but expose only its already-bound
+     * menu button from the hidden header. */
+    html:has(#reactRoot .MuiAppBar-root > .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img)
+    #reactRoot div:has(> .mainDrawer):has(> .skinHeader):has(> .mainDrawerHandle) > .skinHeader,
+    html:has(#reactRoot .MuiAppBar-root > .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img)
+    #reactRoot div:has(> .mainDrawer):has(> .skinHeader):has(> .mainDrawerHandle) > .skinHeader .headerTop,
+    html:has(#reactRoot .MuiAppBar-root > .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img)
+    #reactRoot div:has(> .mainDrawer):has(> .skinHeader):has(> .mainDrawerHandle) > .skinHeader .headerLeft {
+        display: contents !important;
+    }
+
+    html:has(#reactRoot .MuiAppBar-root > .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img)
+    #reactRoot div:has(> .mainDrawer):has(> .skinHeader):has(> .mainDrawerHandle) > .skinHeader .headerRight,
+    html:has(#reactRoot .MuiAppBar-root > .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img)
+    #reactRoot div:has(> .mainDrawer):has(> .skinHeader):has(> .mainDrawerHandle) > .skinHeader .headerTabs,
+    html:has(#reactRoot .MuiAppBar-root > .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img)
+    #reactRoot div:has(> .mainDrawer):has(> .skinHeader):has(> .mainDrawerHandle) > .skinHeader .pageTitle,
+    html:has(#reactRoot .MuiAppBar-root > .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img)
+    #reactRoot div:has(> .mainDrawer):has(> .skinHeader):has(> .mainDrawerHandle) > .skinHeader .headerBackButton,
+    html:has(#reactRoot .MuiAppBar-root > .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img)
+    #reactRoot div:has(> .mainDrawer):has(> .skinHeader):has(> .mainDrawerHandle) > .skinHeader .headerHomeButton,
+    html:has(#reactRoot .MuiAppBar-root > .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img)
+    #reactRoot div:has(> .mainDrawer):has(> .skinHeader):has(> .mainDrawerHandle) > .mainDrawerHandle {
+        display: none !important;
+    }
+
+    html:has(#reactRoot .MuiAppBar-root > .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img)
+    #reactRoot .mainDrawerButton:not(.hide) {
+        position: fixed !important;
+        top: 17px;
+        left: 18px;
+        z-index: 1201;
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+        width: 42px;
+        height: 42px;
+        margin: 0 !important;
+        padding: 9px !important;
+        border: 0 !important;
+        border-radius: 12px !important;
+        background: transparent !important;
+        color: rgba(245, 245, 247, 0.86) !important;
+        cursor: pointer;
+    }
+
+    html:has(#reactRoot .MuiAppBar-root > .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img)
+    #reactRoot .mainDrawerButton:not(.hide):hover {
+        background: rgba(var(--abyss-accent), 0.14) !important;
+        color: rgb(var(--abyss-accent)) !important;
+    }
+
+    /* The modern top toolbar stays structurally native, but visually becomes the
+     * same three-part legacy header: menu / centred pill nav / right actions. */
+    #reactRoot .MuiAppBar-root:has(> .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img)
+    > .MuiToolbar-root:first-child {
         position: relative;
         min-height: 52px !important;
         padding: 4px 8px !important;
@@ -16,12 +78,13 @@
         border-radius: 0 !important;
         background: transparent !important;
         box-shadow: none !important;
+        -webkit-backdrop-filter: none !important;
+        backdrop-filter: none !important;
         overflow: visible;
     }
 
-    /* Keep the native navigation controls and React Router links, but float the
-     * stack into the centre like Desktop Legacy. */
-    #reactRoot [data-abyss-modern-center="true"] {
+    #reactRoot .MuiAppBar-root:has(> .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img)
+    > .MuiToolbar-root:first-child > .MuiStack-root {
         position: absolute !important;
         top: 50%;
         left: 50%;
@@ -41,11 +104,13 @@
         white-space: nowrap;
     }
 
-    #reactRoot [data-abyss-modern-center="true"]::-webkit-scrollbar {
+    #reactRoot .MuiAppBar-root:has(> .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img)
+    > .MuiToolbar-root:first-child > .MuiStack-root::-webkit-scrollbar {
         display: none;
     }
 
-    #reactRoot [data-abyss-modern-center="true"] .MuiButton-root {
+    #reactRoot .MuiAppBar-root:has(> .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img)
+    > .MuiToolbar-root:first-child > .MuiStack-root .MuiButton-root {
         flex: 0 0 auto;
         min-height: 34px;
         padding: 6px 13px;
@@ -54,210 +119,54 @@
         font-weight: 550;
     }
 
-    /* Libraries belong in the left drawer in the legacy layout, not in the
-     * centred primary navigation. */
-    #reactRoot [data-abyss-modern-center="true"] [data-abyss-nav-role="library"] {
+    /* UserViewNav mixes custom menu links and libraries. Desktop Legacy keeps
+     * custom links in the top pill and libraries in the drawer, so do the same.
+     * ServerButton is identified by its native image; Favourites by its route. */
+    #reactRoot .MuiAppBar-root:has(> .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img)
+    > .MuiToolbar-root:first-child > .MuiStack-root
+    > a.MuiButton-root:not([target="_blank"]):not([href*="/home?tab=1"]):not(:has(.MuiButton-startIcon img)) {
         display: none !important;
     }
 
-    /* ServerButton is the modern shell's Home control. Preserve its real native
-     * link while presenting it with the same label used by Desktop Legacy. */
-    #reactRoot [data-abyss-nav-role="home"] {
+    /* ServerButton is really Home in the modern shell. Keep its native route and
+     * accessibility semantics while matching the legacy visible label. */
+    #reactRoot .MuiAppBar-root:has(> .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img)
+    > .MuiToolbar-root:first-child > .MuiStack-root
+    > a.MuiButton-root:has(.MuiButton-startIcon img) {
         font-size: 0 !important;
+        padding-inline: 14px !important;
     }
 
-    #reactRoot [data-abyss-nav-role="home"] .MuiButton-startIcon {
+    #reactRoot .MuiAppBar-root:has(> .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img)
+    > .MuiToolbar-root:first-child > .MuiStack-root
+    > a.MuiButton-root:has(.MuiButton-startIcon img) .MuiButton-startIcon {
         display: none !important;
     }
 
-    #reactRoot [data-abyss-nav-role="home"]::after {
+    #reactRoot .MuiAppBar-root:has(> .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img)
+    > .MuiToolbar-root:first-child > .MuiStack-root
+    > a.MuiButton-root:has(.MuiButton-startIcon img)::after {
         content: "Home";
         font-size: 0.84rem;
         font-weight: 600;
     }
 
-    #reactRoot [data-abyss-nav-role="home"][data-abyss-active="true"],
-    #reactRoot [data-abyss-modern-center="true"] .MuiButton-colorPrimary {
+    /* Home receives the same filled pill state as Favourites/libraries when the
+     * home tab is active. Favourites' native color=primary state wins on tab 1. */
+    body:has(#indexPage.homePage:not(.hide))
+    #reactRoot .MuiAppBar-root:has(> .MuiToolbar-root > .MuiStack-root:not(:has(> a.MuiButton-colorPrimary[href*="/home?tab=1"])) a.MuiButton-root .MuiButton-startIcon img)
+    > .MuiToolbar-root:first-child > .MuiStack-root
+    > a.MuiButton-root:has(.MuiButton-startIcon img) {
         background: rgb(var(--abyss-accent)) !important;
         color: #121212 !important;
         font-weight: 700;
     }
 
-    /* Companion runtime trigger. It intentionally uses no generated Emotion
-     * class names and therefore survives Jellyfin rebuilds. */
-    #reactRoot .abyss-modern-menu-button {
-        position: relative;
-        z-index: 3;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        flex: 0 0 auto;
-        width: 42px;
-        height: 42px;
-        margin: 0 4px 0 0;
-        padding: 9px;
-        border: 0;
-        border-radius: 12px;
-        background: transparent;
-        color: rgba(245, 245, 247, 0.86);
-        cursor: pointer;
-        transition:
-            background-color 0.2s var(--abyss-ease),
-            color 0.2s var(--abyss-ease),
-            transform 0.2s var(--abyss-ease);
-    }
-
-    #reactRoot .abyss-modern-menu-button:hover {
-        background: rgba(var(--abyss-accent), 0.14);
-        color: rgb(var(--abyss-accent));
-    }
-
-    #reactRoot .abyss-modern-menu-button:active {
-        transform: scale(0.94);
-    }
-
-    #reactRoot .abyss-modern-menu-button svg {
-        width: 21px;
-        height: 21px;
-        fill: currentColor;
-    }
-}
-
-/* Runtime drawer. This lives under body instead of #reactRoot so React cannot
- * remove it during route changes. */
-#abyss-modern-drawer-backdrop {
-    position: fixed;
-    inset: 0;
-    z-index: 1398;
-    background: rgba(0, 0, 0, 0.38);
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.2s var(--abyss-ease);
-}
-
-#abyss-modern-drawer {
-    position: fixed;
-    top: 16px;
-    bottom: 16px;
-    left: 16px;
-    z-index: 1399;
-    box-sizing: border-box;
-    width: min(300px, calc(100vw - 32px));
-    padding: 10px;
-    border: 1px solid rgba(245, 245, 247, 0.2);
-    border-radius: 24px;
-    background-color: rgba(var(--abyss-glass-tint), 0.92);
-    box-shadow: 0 18px 60px rgba(0, 0, 0, 0.42);
-    color: rgba(245, 245, 247, 0.92);
-    transform: translateX(calc(-100% - 32px));
-    transition: transform 0.22s var(--abyss-ease-snappy);
-    overflow-y: auto;
-    overscroll-behavior: contain;
-}
-
-body.abyss-modern-drawer-open #abyss-modern-drawer-backdrop {
-    opacity: 1;
-    pointer-events: auto;
-}
-
-body.abyss-modern-drawer-open #abyss-modern-drawer {
-    transform: translateX(0);
-}
-
-#abyss-modern-drawer .abyss-modern-drawer-title {
-    padding: 12px 12px 10px;
-    font-family: "Google Sans", sans-serif;
-    font-size: 1rem;
-    font-weight: 650;
-    color: rgba(245, 245, 247, 0.96);
-}
-
-#abyss-modern-drawer .abyss-modern-drawer-section {
-    margin: 4px 0 10px;
-}
-
-#abyss-modern-drawer .abyss-modern-drawer-section-title {
-    padding: 8px 12px 5px;
-    font-family: "Google Sans", sans-serif;
-    font-size: 0.72rem;
-    font-weight: 650;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: rgba(245, 245, 247, 0.44);
-}
-
-#abyss-modern-drawer .abyss-modern-drawer-link {
-    display: flex;
-    align-items: center;
-    min-height: 42px;
-    margin: 2px 0;
-    padding: 8px 11px;
-    border-radius: 12px;
-    color: rgba(245, 245, 247, 0.84);
-    font-family: "Google Sans", sans-serif;
-    font-size: 0.92rem;
-    font-weight: 500;
-    text-decoration: none;
-    cursor: pointer;
-    transition:
-        background-color 0.2s var(--abyss-ease),
-        color 0.2s var(--abyss-ease);
-}
-
-#abyss-modern-drawer .abyss-modern-drawer-link:hover {
-    background: rgba(var(--abyss-accent), 0.14);
-    color: rgb(var(--abyss-accent));
-}
-
-#abyss-modern-drawer .abyss-modern-drawer-link[data-abyss-selected="true"] {
-    background: rgb(var(--abyss-accent));
-    color: #121212;
-    font-weight: 700;
-}
-
-#abyss-modern-drawer .abyss-modern-drawer-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    flex: 0 0 30px;
-    width: 30px;
-    height: 30px;
-    margin-right: 8px;
-}
-
-#abyss-modern-drawer .abyss-modern-drawer-icon svg,
-#abyss-modern-drawer .abyss-modern-drawer-icon img {
-    width: 20px;
-    height: 20px;
-    max-width: 20px;
-    max-height: 20px;
-}
-
-@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-    @media (min-width: 900px) {
-        #reactRoot [data-abyss-modern-center="true"] {
+    @supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+        #reactRoot .MuiAppBar-root:has(> .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img)
+        > .MuiToolbar-root:first-child > .MuiStack-root {
             -webkit-backdrop-filter: blur(var(--abyss-glass-blur));
             backdrop-filter: blur(var(--abyss-glass-blur));
         }
-    }
-
-    #abyss-modern-drawer {
-        -webkit-backdrop-filter: blur(var(--abyss-glass-blur));
-        backdrop-filter: blur(var(--abyss-glass-blur));
-    }
-}
-
-@media (max-width: 899px) {
-    #abyss-modern-drawer-backdrop,
-    #abyss-modern-drawer {
-        display: none !important;
-    }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    #abyss-modern-drawer-backdrop,
-    #abyss-modern-drawer,
-    #reactRoot .abyss-modern-menu-button {
-        transition-duration: 0.01ms !important;
     }
 }
