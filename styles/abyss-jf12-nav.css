@@ -1,0 +1,143 @@
+/* Jellyfin 12 Auto/Modern navigation compatibility.
+ *
+ * Auto mode still mounts Jellyfin's legacy AppHeader + NavDrawer for hybrid
+ * legacy content views. On desktop, reuse those already-initialised controls
+ * instead of recreating Abyss navigation with MUI lookalikes. This preserves
+ * Jellyfin's own tab contents, active state, plugin-injected tabs, back/home
+ * visibility rules and the original click handlers.
+ */
+
+@media (min-width: 900px) {
+    /* ServerButton is the only direct user-view navigation button with an image
+     * startIcon, so it is a stable detector for Jellyfin 12's desktop Auto shell
+     * without depending on generated Emotion .css-* hashes. */
+    html:has(#reactRoot .MuiAppBar-root > .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img)
+    #reactRoot div:has(> .mainDrawer):has(> .skinHeader):has(> .mainDrawerHandle) {
+        display: contents !important;
+    }
+
+    /* Re-expose Jellyfin's real legacy header inside the Auto shell. The left
+     * cluster remains a cluster so back/home/drawer keep their native order.
+     * Do not force any of those buttons visible: .hide, noHomeButtonHeader and
+     * Jellyfin's page lifecycle remain the source of truth. */
+    html:has(#reactRoot .MuiAppBar-root > .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img)
+    #reactRoot div:has(> .mainDrawer):has(> .skinHeader):has(> .mainDrawerHandle) > .skinHeader,
+    html:has(#reactRoot .MuiAppBar-root > .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img)
+    #reactRoot div:has(> .mainDrawer):has(> .skinHeader):has(> .mainDrawerHandle) > .skinHeader .headerTop {
+        display: contents !important;
+    }
+
+    /* These fixed legacy controls must sit above the modern toolbar while the
+     * drawer is closed, otherwise the transparent MUI AppBar intercepts their
+     * pointer events. The drawer-open rule below temporarily restores Jellyfin's
+     * native 999 stacking level while the drawer and mask are active. */
+    html:has(#reactRoot .MuiAppBar-root > .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img)
+    #reactRoot div:has(> .mainDrawer):has(> .skinHeader):has(> .mainDrawerHandle) > .skinHeader .headerLeft {
+        position: fixed !important;
+        top: 14px;
+        left: 18px;
+        z-index: 1202;
+        display: flex !important;
+        align-items: center;
+        width: auto;
+        max-width: calc(50vw - 90px);
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: hidden;
+    }
+
+    /* Auto owns the equivalent right-side actions (SyncPlay, cast/remote,
+     * search, user menu). Keeping both copies would duplicate controls. */
+    html:has(#reactRoot .MuiAppBar-root > .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img)
+    #reactRoot div:has(> .mainDrawer):has(> .skinHeader):has(> .mainDrawerHandle) > .skinHeader .headerRight,
+    html:has(#reactRoot .MuiAppBar-root > .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img)
+    #reactRoot div:has(> .mainDrawer):has(> .skinHeader):has(> .mainDrawerHandle) > .mainDrawerHandle {
+        display: none !important;
+    }
+
+    /* A visible legacy header button may otherwise remain suppressed by the
+     * Auto shell's legacy-header hiding rule. Respect Jellyfin's .hide state and
+     * only restore buttons that Jellyfin itself marked visible. Abyss' existing
+     * .paper-icon-button-light rules own their appearance. */
+    html:has(#reactRoot .MuiAppBar-root > .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img)
+    #reactRoot .headerLeft > .headerButton:not(.hide) {
+        display: inline-flex !important;
+    }
+
+    /* The MUI AppBar remains the owner of the right-side Auto actions, but the
+     * enclosing strip is transparent just like Abyss' legacy .skinHeader. */
+    #reactRoot .MuiAppBar-root:has(> .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img)
+    > .MuiToolbar-root:first-child {
+        position: relative;
+        min-height: 52px !important;
+        padding: 0 31px !important;
+        border: 0 !important;
+        border-radius: 0 !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        -webkit-backdrop-filter: none !important;
+        backdrop-filter: none !important;
+        overflow: visible;
+    }
+
+    /* Auto's UserViewNav is not an Abyss/Legacy header component. Hide it on
+     * desktop whether or not the current view owns legacy section tabs. This is
+     * what prevents detail pages from changing into the MUI Home/heart-Favourites
+     * pill when the legacy tab manager clears the tab strip. */
+    #reactRoot .MuiAppBar-root:has(> .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img)
+    > .MuiToolbar-root:first-child > .MuiStack-root {
+        display: none !important;
+        pointer-events: none !important;
+    }
+
+    /* Reuse the actual Desktop Legacy section tabs whenever Jellyfin's tab
+     * manager populated them. Enhanced/custom tabs therefore stay byte-for-byte
+     * the same DOM that Abyss normally styles. If no tabs exist, nothing is
+     * synthesised in the centre. */
+    html:has(#reactRoot .MuiAppBar-root > .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img):has(#reactRoot .headerTabs.sectionTabs .emby-tab-button)
+    #reactRoot .headerTabs.sectionTabs:has(.emby-tab-button) {
+        position: fixed !important;
+        top: 14px !important;
+        left: 50% !important;
+        z-index: 1203 !important;
+        display: block !important;
+        width: fit-content !important;
+        max-width: min(70vw, 860px) !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        transform: translateX(-50%) !important;
+        overflow: visible !important;
+    }
+
+    html:has(#reactRoot .MuiAppBar-root > .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img):has(#reactRoot .headerTabs.sectionTabs .emby-tab-button)
+    #reactRoot .headerTabs.sectionTabs:has(.emby-tab-button) .emby-tabs {
+        margin: 0 !important;
+    }
+
+    html:has(#reactRoot .MuiAppBar-root > .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img):has(#reactRoot .headerTabs.sectionTabs .emby-tab-button)
+    #reactRoot .headerTabs.sectionTabs:has(.emby-tab-button) .emby-tabs-slider {
+        max-width: min(70vw, 860px);
+        margin: 0 !important;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scrollbar-width: none;
+        white-space: nowrap;
+    }
+
+    html:has(#reactRoot .MuiAppBar-root > .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img):has(#reactRoot .headerTabs.sectionTabs .emby-tab-button)
+    #reactRoot .headerTabs.sectionTabs:has(.emby-tab-button) .emby-tabs-slider::-webkit-scrollbar {
+        display: none;
+    }
+
+    /* NavDrawer adds .drawer-open to .mainDrawer before showing its 1098 mask
+     * and 1099 drawer. Lower only the compatibility header layers during that
+     * state. Keeping the higher z-index while closed is required for clicks. */
+    html:has(#reactRoot .mainDrawer.drawer-open)
+    #reactRoot div:has(> .mainDrawer):has(> .skinHeader):has(> .mainDrawerHandle) > .skinHeader .headerLeft,
+    html:has(#reactRoot .mainDrawer.drawer-open)
+    #reactRoot .headerTabs.sectionTabs:has(.emby-tab-button),
+    html:has(#reactRoot .mainDrawer.drawer-open)
+    #reactRoot .MuiAppBar-root:has(> .MuiToolbar-root > .MuiStack-root a.MuiButton-root .MuiButton-startIcon img) {
+        z-index: 999 !important;
+    }
+}

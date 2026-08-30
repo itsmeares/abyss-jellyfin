@@ -1,0 +1,528 @@
+/* Jellyfin 12 Auto/Modern compatibility bridge for Abyss.
+ *
+ * abyss.css remains the design source of truth. This file only maps Jellyfin
+ * 12's React/MUI primitives to existing Abyss components; it deliberately does
+ * not introduce a second visual language for the modern shell.
+ *
+ * Keep selectors on stable MUI utility classes. Generated Emotion .css-* hashes
+ * are implementation details and must never be used here.
+ */
+
+/* -------------------------------------------------------------------------
+ * Modern shell / toolbar geometry
+ * ------------------------------------------------------------------------- */
+
+#reactRoot .MuiAppBar-root:has(> .MuiToolbar-root) {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 0 !important;
+    background: transparent !important;
+    color: inherit !important;
+    box-shadow: none !important;
+}
+
+/* Abyss keeps .skinHeader transparent; style the controls, not an invented
+ * full-width glass card around them. */
+#reactRoot .MuiAppBar-root:has(> .MuiToolbar-root) > .MuiToolbar-root {
+    box-sizing: border-box;
+    min-height: 52px !important;
+    padding: 0 31px !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    color: inherit;
+}
+
+/* LibraryToolbar is a Jellyfin 12-only row. Keep its container transparent and
+ * map its individual controls to the equivalent Abyss buttons/indicators. */
+#reactRoot .MuiAppBar-root:has(> .MuiToolbar-root) > .MuiToolbar-root + .MuiToolbar-root {
+    min-height: 44px !important;
+    padding: 0 31px !important;
+}
+
+/* The modern video route uses a separate MUI toolbar. Legacy Abyss does not put
+ * a glass card around .skinHeader.osdHeader, so keep this shell transparent too. */
+#reactRoot .skinHeader.osdHeader:has(> .MuiToolbar-root) {
+    display: block !important;
+    height: auto;
+    background: transparent !important;
+}
+
+#reactRoot .skinHeader.osdHeader > .MuiToolbar-root {
+    min-height: 52px !important;
+    margin: 0;
+    padding: 0 31px !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+/* -------------------------------------------------------------------------
+ * Header / OSD icon buttons -> Abyss .paper-icon-button-light
+ * ------------------------------------------------------------------------- */
+
+#reactRoot .MuiAppBar-root:has(> .MuiToolbar-root) .MuiIconButton-root,
+#reactRoot .skinHeader.osdHeader .MuiIconButton-root {
+    margin: 0 0.29em;
+    padding: 0.556em;
+    border: 0;
+    border-radius: var(--abyss-radius) !important;
+    background: transparent !important;
+    color: inherit;
+    transition:
+        background 0.37s var(--abyss-ease),
+        color 0.37s var(--abyss-ease),
+        border-color 0.37s var(--abyss-ease),
+        opacity 0.37s var(--abyss-ease),
+        transform 0.37s var(--abyss-ease) !important;
+}
+
+#reactRoot .MuiAppBar-root:has(> .MuiToolbar-root) .MuiIconButton-root:hover,
+#reactRoot .skinHeader.osdHeader .MuiIconButton-root:hover {
+    background-color: rgba(0, 0, 0, 0.4) !important;
+    color: rgb(var(--abyss-accent)) !important;
+}
+
+/* Legacy user images are round, but Abyss does not add the border/shadow that
+ * the first JF12 bridge invented. */
+#reactRoot button.MuiIconButton-root[aria-controls="app-user-menu"] {
+    border-radius: 50px !important;
+}
+
+/* -------------------------------------------------------------------------
+ * Modern library toolbar -> existing Abyss button vocabulary
+ * ------------------------------------------------------------------------- */
+
+#reactRoot .MuiAppBar-root:has(> .MuiToolbar-root) > .MuiToolbar-root + .MuiToolbar-root .MuiButton-root,
+#reactRoot .MuiAppBar-root:has(> .MuiToolbar-root) > .MuiToolbar-root + .MuiToolbar-root .MuiIconButton-root {
+    font-family: inherit;
+    text-transform: none;
+}
+
+/* Equivalent of .raised. */
+#reactRoot .MuiAppBar-root:has(> .MuiToolbar-root) > .MuiToolbar-root + .MuiToolbar-root .MuiButton-contained {
+    border-radius: var(--abyss-radius) !important;
+    background: rgba(40, 40, 40, 0.8) !important;
+    color: inherit;
+    box-shadow: none !important;
+    transition:
+        background 0.37s var(--abyss-ease),
+        color 0.37s var(--abyss-ease),
+        border-color 0.37s var(--abyss-ease),
+        box-shadow 0.37s var(--abyss-ease) !important;
+}
+
+#reactRoot .MuiAppBar-root:has(> .MuiToolbar-root) > .MuiToolbar-root + .MuiToolbar-root .MuiButton-contained:hover {
+    background: rgb(var(--abyss-accent)) !important;
+    color: #121212 !important;
+    font-weight: 700;
+}
+
+/* Equivalent of .button-flat / .paper-icon-button-light. */
+#reactRoot .MuiAppBar-root:has(> .MuiToolbar-root) > .MuiToolbar-root + .MuiToolbar-root .MuiButton-text {
+    border-radius: var(--abyss-radius) !important;
+    background: transparent !important;
+    color: inherit;
+}
+
+#reactRoot .MuiAppBar-root:has(> .MuiToolbar-root) > .MuiToolbar-root + .MuiToolbar-root .MuiButton-text:hover {
+    background: rgba(0, 0, 0, 0.4) !important;
+    color: rgb(var(--abyss-accent)) !important;
+}
+
+#reactRoot .MuiAppBar-root:has(> .MuiToolbar-root) > .MuiToolbar-root + .MuiToolbar-root .MuiButtonGroup-root {
+    border-radius: var(--abyss-radius);
+    box-shadow: none;
+}
+
+/* Equivalent of .countIndicator. */
+#reactRoot .MuiAppBar-root:has(> .MuiToolbar-root) > .MuiToolbar-root + .MuiToolbar-root .MuiChip-root {
+    height: auto;
+    padding: 4px;
+    border: 0;
+    border-radius: 10px !important;
+    background: rgba(var(--abyss-indicator), 0.8) !important;
+    color: inherit;
+    font-family: inherit;
+    font-weight: bolder;
+}
+
+#reactRoot .MuiAppBar-root:has(> .MuiToolbar-root) > .MuiToolbar-root + .MuiToolbar-root .MuiChip-label {
+    padding: 0;
+}
+
+/* -------------------------------------------------------------------------
+ * Portalled MUI surfaces -> Abyss .dialog / action sheet / .mainDrawer
+ * -------------------------------------------------------------------------
+ * The modern AppLayout always owns a MuiAppBar, including /video where the
+ * standard toolbar itself is intentionally empty. This gate therefore covers
+ * modern menus/dialogs without leaking into Desktop Legacy.
+ */
+
+html:has(#reactRoot .MuiAppBar-root) .MuiPaper-root.MuiMenu-paper,
+html:has(#reactRoot .MuiAppBar-root) .MuiPaper-root.MuiPopover-paper,
+html:has(#reactRoot .MuiAppBar-root) .MuiPaper-root.MuiDialog-paper {
+    border: solid 1px rgba(245, 245, 247, 0.2) !important;
+    border-radius: 24px !important;
+    background-color: rgba(var(--abyss-glass-tint), 0.69) !important;
+    background-image: none !important;
+    color: inherit;
+    box-shadow:
+        0 16px 24px 2px rgba(0, 0, 0, 0.14),
+        0 6px 30px 5px rgba(0, 0, 0, 0.12),
+        0 8px 10px -5px rgba(0, 0, 0, 0.4);
+}
+
+html:has(#reactRoot .MuiAppBar-root) .MuiPaper-root.MuiDialog-paper {
+    font-weight: 500;
+}
+
+html:has(#reactRoot .MuiAppBar-root) .MuiDialogTitle-root {
+    font-weight: bold;
+}
+
+/* Equivalent of .actionSheetContent. */
+html:has(#reactRoot .MuiAppBar-root) .MuiMenu-list {
+    padding: 0.7em 0.6em !important;
+}
+
+/* Equivalent of .actionSheetMenuItem. */
+html:has(#reactRoot .MuiAppBar-root) .MuiMenuItem-root {
+    border-radius: var(--abyss-radius) !important;
+    color: inherit;
+    font-family: inherit;
+    transition:
+        background 0.37s var(--abyss-ease),
+        color 0.37s var(--abyss-ease),
+        border-color 0.37s var(--abyss-ease),
+        opacity 0.37s var(--abyss-ease) !important;
+}
+
+html:has(#reactRoot .MuiAppBar-root) .MuiMenuItem-root.Mui-selected {
+    background: transparent !important;
+    color: rgb(var(--abyss-accent)) !important;
+}
+
+html:has(#reactRoot .MuiAppBar-root) .MuiMenuItem-root:hover,
+html:has(#reactRoot .MuiAppBar-root) .MuiMenuItem-root.Mui-selected:hover {
+    background: rgb(var(--abyss-accent)) !important;
+    color: #121212 !important;
+    font-weight: 700;
+}
+
+html:has(#reactRoot .MuiAppBar-root) .MuiMenuItem-root .MuiListItemIcon-root {
+    color: currentColor;
+}
+
+/* Responsive modern drawer -> Abyss .mainDrawer. */
+html:has(#reactRoot .MuiAppBar-root) .MuiDrawer-paper {
+    margin: 24px;
+    max-height: calc(100% - 48px);
+    border: solid 1px rgba(245, 245, 247, 0.2) !important;
+    border-radius: 32px;
+    background-color: rgba(var(--abyss-glass-tint), 0.69) !important;
+    background-image: none !important;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    overflow: auto;
+}
+
+html:has(#reactRoot .MuiAppBar-root) .MuiDrawer-paper .MuiList-root {
+    padding: 0;
+}
+
+/* Equivalent of .navMenuOption. */
+html:has(#reactRoot .MuiAppBar-root) .MuiDrawer-paper .MuiListItemButton-root {
+    min-height: 0;
+    margin: 0 0 2px !important;
+    padding: 0.5em 0.9em !important;
+    border-radius: 12px !important;
+    background: transparent !important;
+    color: inherit;
+    font-family: inherit;
+    transition:
+        background 0.37s var(--abyss-ease),
+        color 0.37s var(--abyss-ease),
+        border-color 0.37s var(--abyss-ease),
+        opacity 0.37s var(--abyss-ease) !important;
+}
+
+html:has(#reactRoot .MuiAppBar-root) .MuiDrawer-paper .MuiListItemButton-root.Mui-selected {
+    background: transparent !important;
+    color: rgb(var(--abyss-accent)) !important;
+}
+
+html:has(#reactRoot .MuiAppBar-root) .MuiDrawer-paper .MuiListItemButton-root:hover,
+html:has(#reactRoot .MuiAppBar-root) .MuiDrawer-paper .MuiListItemButton-root.Mui-selected:hover {
+    background: rgb(var(--abyss-accent)) !important;
+    color: #121212 !important;
+    font-weight: 700;
+}
+
+/* Equivalent of .navMenuOptionIcon. */
+html:has(#reactRoot .MuiAppBar-root) .MuiDrawer-paper .MuiListItemIcon-root {
+    min-width: 0;
+    margin-right: 0.75em;
+    padding: 10px;
+    border-radius: 50px;
+    background: #cccccf69;
+    color: currentColor;
+}
+
+/* Equivalent of .navMenuOptionText. */
+html:has(#reactRoot .MuiAppBar-root) .MuiDrawer-paper .MuiListItemText-primary {
+    margin-top: 0;
+    font-size: large;
+    font-weight: 500;
+}
+
+/* Equivalent of .sidebarHeader. */
+html:has(#reactRoot .MuiAppBar-root) .MuiDrawer-paper .MuiListSubheader-root {
+    margin: 0.9em 0 0.2em;
+    padding-left: 0.8em;
+    background: transparent;
+    color: inherit;
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    line-height: inherit;
+    opacity: 0.5;
+    text-transform: none;
+}
+
+/* -------------------------------------------------------------------------
+ * Forms and controls -> existing Abyss form states
+ * ------------------------------------------------------------------------- */
+
+html:has(#reactRoot .MuiAppBar-root) .MuiInputLabel-root,
+html:has(#reactRoot .MuiAppBar-root) .MuiFormLabel-root {
+    color: inherit;
+    font-family: inherit;
+    font-weight: 500;
+}
+
+html:has(#reactRoot .MuiAppBar-root) .MuiFormHelperText-root {
+    color: inherit;
+    font-family: inherit;
+    opacity: 0.7;
+}
+
+html:has(#reactRoot .MuiAppBar-root) .MuiInputLabel-root.Mui-focused,
+html:has(#reactRoot .MuiAppBar-root) .MuiFormLabel-root.Mui-focused {
+    color: rgb(var(--abyss-accent));
+}
+
+html:has(#reactRoot .MuiAppBar-root) .MuiFilledInput-root,
+html:has(#reactRoot .MuiAppBar-root) .MuiOutlinedInput-root,
+html:has(#reactRoot .MuiAppBar-root) .MuiInputBase-root.MuiInputBase-formControl {
+    border-radius: var(--abyss-radius);
+    background: transparent !important;
+    color: inherit;
+    font-family: inherit;
+}
+
+html:has(#reactRoot .MuiAppBar-root) .MuiOutlinedInput-notchedOutline {
+    border-color: rgba(40, 40, 40, 0.8) !important;
+}
+
+html:has(#reactRoot .MuiAppBar-root) .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+    border-color: rgba(40, 40, 40, 0.8) !important;
+}
+
+html:has(#reactRoot .MuiAppBar-root) .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+    border-color: rgba(var(--abyss-accent), 0.4) !important;
+}
+
+html:has(#reactRoot .MuiAppBar-root) .MuiFilledInput-root::before {
+    border-bottom-color: rgba(40, 40, 40, 0.8) !important;
+}
+
+html:has(#reactRoot .MuiAppBar-root) .MuiFilledInput-root::after {
+    border-bottom-color: rgba(var(--abyss-accent), 0.4) !important;
+}
+
+html:has(#reactRoot .MuiAppBar-root) .MuiSelect-icon {
+    color: inherit;
+}
+
+html:has(#reactRoot .MuiAppBar-root) .MuiCheckbox-root,
+html:has(#reactRoot .MuiAppBar-root) .MuiRadio-root,
+html:has(#reactRoot .MuiAppBar-root) .MuiSwitch-switchBase {
+    color: rgba(var(--abyss-accent), 0.3);
+}
+
+html:has(#reactRoot .MuiAppBar-root) .MuiCheckbox-root.Mui-checked,
+html:has(#reactRoot .MuiAppBar-root) .MuiCheckbox-root.MuiCheckbox-indeterminate,
+html:has(#reactRoot .MuiAppBar-root) .MuiRadio-root.Mui-checked,
+html:has(#reactRoot .MuiAppBar-root) .MuiSwitch-switchBase.Mui-checked {
+    color: rgb(var(--abyss-accent)) !important;
+}
+
+html:has(#reactRoot .MuiAppBar-root) .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track {
+    background-color: rgb(var(--abyss-accent)) !important;
+    opacity: 0.5;
+}
+
+html:has(#reactRoot .MuiAppBar-root) .MuiSlider-root {
+    color: rgb(var(--abyss-accent));
+}
+
+html:has(#reactRoot .MuiAppBar-root) .MuiLinearProgress-root,
+html:has(#reactRoot .MuiAppBar-root) .MuiCircularProgress-root {
+    color: rgb(var(--abyss-accent));
+}
+
+/* -------------------------------------------------------------------------
+ * MUI tabs -> Abyss .emby-tabs / .emby-tabs-slider / .emby-tab-button
+ * ------------------------------------------------------------------------- */
+
+html:has(#reactRoot .MuiAppBar-root) .MuiTabs-root {
+    min-height: 0;
+    border-radius: 50px;
+}
+
+html:has(#reactRoot .MuiAppBar-root) .MuiTabs-scroller {
+    padding: 5px 2.5px;
+    border: 1px solid rgba(87, 87, 87, 0.18);
+    border-radius: 50px;
+    background-color: rgba(var(--abyss-glass-tint), 0.9);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+}
+
+html:has(#reactRoot .MuiAppBar-root) .MuiTabs-indicator {
+    display: none;
+}
+
+html:has(#reactRoot .MuiAppBar-root) .MuiTab-root {
+    min-height: 0;
+    margin: 0 2.5px;
+    padding: 0.5em 1.5em;
+    border-radius: 50px;
+    color: inherit;
+    font-family: inherit;
+    text-transform: none;
+    transition:
+        background 0.37s var(--abyss-ease),
+        color 0.37s var(--abyss-ease),
+        border-color 0.37s var(--abyss-ease),
+        opacity 0.37s var(--abyss-ease),
+        transform 0.37s var(--abyss-ease) !important;
+}
+
+html:has(#reactRoot .MuiAppBar-root) .MuiTab-root:hover:not(.Mui-selected) {
+    color: rgb(var(--abyss-accent));
+}
+
+html:has(#reactRoot .MuiAppBar-root) .MuiTab-root.Mui-selected {
+    background: rgb(var(--abyss-accent)) !important;
+    color: #121212 !important;
+}
+
+html:has(#reactRoot .MuiAppBar-root) .MuiTab-root.Mui-selected:hover {
+    color: #121212 !important;
+}
+
+/* -------------------------------------------------------------------------
+ * Generic modern buttons -> Abyss .raised / .button-flat
+ * ------------------------------------------------------------------------- */
+
+html:has(#reactRoot .MuiAppBar-root) .MuiButton-root {
+    font-family: inherit;
+    text-transform: none;
+}
+
+html:has(#reactRoot .MuiAppBar-root) .MuiButton-contained:not(.MuiButtonGroup-root .MuiButton-contained) {
+    border-radius: var(--abyss-radius) !important;
+    background: rgba(40, 40, 40, 0.8) !important;
+    color: inherit;
+    box-shadow: none !important;
+    transition:
+        background 0.37s var(--abyss-ease),
+        color 0.37s var(--abyss-ease),
+        border-color 0.37s var(--abyss-ease),
+        box-shadow 0.37s var(--abyss-ease) !important;
+}
+
+html:has(#reactRoot .MuiAppBar-root) .MuiButton-contained:not(.MuiButtonGroup-root .MuiButton-contained):hover {
+    background: rgb(var(--abyss-accent)) !important;
+    color: #121212 !important;
+    font-weight: 700;
+}
+
+html:has(#reactRoot .MuiAppBar-root) .MuiButton-text:not(.MuiAppBar-root > .MuiToolbar-root:first-child .MuiButton-text) {
+    border-radius: var(--abyss-radius) !important;
+}
+
+html:has(#reactRoot .MuiAppBar-root) .MuiButton-text:not(.MuiAppBar-root > .MuiToolbar-root:first-child .MuiButton-text):hover {
+    background: rgba(0, 0, 0, 0.4) !important;
+    color: rgb(var(--abyss-accent)) !important;
+}
+
+/* -------------------------------------------------------------------------
+ * Feedback surfaces -> Abyss .toast
+ * ------------------------------------------------------------------------- */
+
+html:has(#reactRoot .MuiAppBar-root) .MuiSnackbarContent-root,
+html:has(#reactRoot .MuiAppBar-root) .MuiAlert-root {
+    border: solid 1px rgba(245, 245, 247, 0.2) !important;
+    border-radius: 24px !important;
+    background-color: rgba(var(--abyss-glass-tint), 0.69) !important;
+    background-image: none !important;
+    color: inherit;
+}
+
+/* -------------------------------------------------------------------------
+ * Backdrop-filter support mirrors abyss.css exactly where an equivalent
+ * legacy surface exists.
+ * ------------------------------------------------------------------------- */
+
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    html:has(#reactRoot .MuiAppBar-root) .MuiPaper-root.MuiMenu-paper,
+    html:has(#reactRoot .MuiAppBar-root) .MuiPaper-root.MuiPopover-paper,
+    html:has(#reactRoot .MuiAppBar-root) .MuiPaper-root.MuiDialog-paper,
+    html:has(#reactRoot .MuiAppBar-root) .MuiDrawer-paper,
+    html:has(#reactRoot .MuiAppBar-root) .MuiTabs-scroller,
+    html:has(#reactRoot .MuiAppBar-root) .MuiSnackbarContent-root,
+    html:has(#reactRoot .MuiAppBar-root) .MuiAlert-root {
+        -webkit-backdrop-filter: blur(var(--abyss-glass-blur)) !important;
+        backdrop-filter: blur(var(--abyss-glass-blur)) !important;
+        background-color: rgba(var(--abyss-glass-tint), 0.69) !important;
+    }
+
+    /* Abyss applies blur to legacy .headerButton itself, not its whole header. */
+    #reactRoot .MuiAppBar-root:has(> .MuiToolbar-root) .MuiIconButton-root,
+    #reactRoot .skinHeader.osdHeader .MuiIconButton-root {
+        -webkit-backdrop-filter: blur(var(--abyss-glass-blur)) !important;
+        backdrop-filter: blur(var(--abyss-glass-blur)) !important;
+    }
+}
+
+/* -------------------------------------------------------------------------
+ * Responsive adjustments that correspond to existing Abyss header rules.
+ * ------------------------------------------------------------------------- */
+
+@media (max-width: 899px) {
+    #reactRoot .MuiAppBar-root:has(> .MuiToolbar-root) > .MuiToolbar-root,
+    #reactRoot .skinHeader.osdHeader > .MuiToolbar-root {
+        padding-inline: 12px !important;
+    }
+
+    html:has(#reactRoot .MuiAppBar-root) .MuiDrawer-paper {
+        margin: 24px;
+        max-height: calc(100% - 48px);
+    }
+}
+
+@media (max-width: 416px) {
+    #reactRoot .MuiAppBar-root:has(> .MuiToolbar-root) > .MuiToolbar-root,
+    #reactRoot .skinHeader.osdHeader > .MuiToolbar-root {
+        padding-inline: 12px !important;
+    }
+
+    #reactRoot .MuiAppBar-root:has(> .MuiToolbar-root) .MuiIconButton-root,
+    #reactRoot .skinHeader.osdHeader .MuiIconButton-root {
+        padding: 8px;
+    }
+}

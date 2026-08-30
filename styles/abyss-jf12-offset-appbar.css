@@ -1,0 +1,22 @@
+/* OffsetAppBar geometry guard for Jellyfin 12.
+ *
+ * ResizeObserver measures the AppBar content box for the spacer below it. Keep
+ * all vertical geometry inside that measured box: no AppBar padding, no toolbar
+ * margins, and no synthetic gaps. Visual spacing belongs to the controls, just
+ * as it does in Abyss' legacy header.
+ */
+
+#reactRoot .MuiAppBar-root:has(> .MuiToolbar-root) {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding: 0 !important;
+}
+
+#reactRoot .MuiAppBar-root:has(> .MuiToolbar-root) > .MuiToolbar-root {
+    margin: 0;
+}
+
+#reactRoot .MuiAppBar-root:has(> .MuiToolbar-root) > .MuiToolbar-root + .MuiToolbar-root {
+    margin-top: 0;
+}
