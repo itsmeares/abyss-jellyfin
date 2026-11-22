@@ -15,11 +15,15 @@
   }
 
   var lifecycleObserver = null;
-  var lifecycleCleanup = function () {};
+  var lifecycleCleanup = function () { };
   var currentIndexPage = null;
   var currentHomeTab = null;
   var currentFavoritesTab = null;
   var currentIframe = null;
+  var backdropOverlay = null;
+  var backdropLayerA = null;
+  var backdropLayerB = null;
+  var activeBackdropLayer = null;
 
   function safe(fn) {
     // Runs fn and swallows/reports any error so one failure never kills the loader.
@@ -34,14 +38,53 @@
     }
   }
 
+  var BACKDROP_SELECTOR = ".backdropContainer .backdropImage";
+  var BACKDROP_MARK_ATTR = "data-abyss-spotlight-backdrop";
+
+  function applySpotlightBackdrop(url) {
+    if (!url) { clearSpotlightBackdrop(); return; }
+    safe(function () {
+      var els = document.querySelectorAll(BACKDROP_SELECTOR);
+      for (var i = 0; i < els.length; i++) {
+        els[i].setAttribute(BACKDROP_MARK_ATTR, "true");
+        els[i].style.backgroundImage = 'url("' + url + '")';
+      }
+    });
+  }
+
+  function clearSpotlightBackdrop() {
+    safe(function () {
+      var els = document.querySelectorAll(BACKDROP_SELECTOR + "[" + BACKDROP_MARK_ATTR + "]");
+      for (var i = 0; i < els.length; i++) {
+        els[i].style.backgroundImage = "";
+        els[i].removeAttribute(BACKDROP_MARK_ATTR);
+      }
+    });
+  }
+
+  function clearSpotlightLifecycle() {
+    safe(lifecycleCleanup);
+    lifecycleCleanup = function () { };
+    lifecycleObserver = null;
+    currentIndexPage = null;
+    currentHomeTab = null;
+    currentFavoritesTab = null;
+    currentIframe = null;
+    currentSync = null;
+    spotlightFocused = false;
+    document.documentElement.classList.remove("abyss-spotlight-visible");
+    clearSpotlightBackdrop();
+  }
+
   function installFrameStyle() {
     if (document.getElementById(STYLE_ID)) return;
     var style = document.createElement("style");
     style.id = STYLE_ID;
     style.textContent =
-      "#indexPage:has(." + FRAME_CLASS + ") { padding: 0 !important; }" +
-      "#homeTab:has(." + FRAME_CLASS + ") { padding: 0 !important; margin: 0 !important; }" +
+      "#indexPage.abyss-spotlight-active { padding: 0 !important; }" +
+      "#homeTab.abyss-spotlight-active { padding: 0 !important; margin: 0 !important; }" +
       "." + FRAME_CLASS + " { width:100%;display:block;border:0;margin:0;padding:0;height:70vh;min-height:420px;max-height:680px; }" +
+      "." + FRAME_CLASS + ":focus { outline: none; }" +
       "@media (min-width:1400px) { ." + FRAME_CLASS + " { height:72vh;max-height:760px; } }" +
       "@media (min-width:1920px) { ." + FRAME_CLASS + " { height:68vh;max-height:860px; } }" +
       "@media (max-width:1024px) and (orientation:portrait) and (hover:none) and (pointer:coarse) { ." + FRAME_CLASS + " { height:90vh;min-height:320px;max-height:720px; } }" +
@@ -51,34 +94,55 @@
     document.head.appendChild(style);
   }
 
-  function forceDarkTheme() {
-    if (typeof Storage === "undefined" || !window.localStorage) return;
+  function installBackdropOverlay() {
+    if (backdropOverlay) return;
+    var container = document.querySelector(".backdropContainer");
+    if (!container || !container.parentNode) return;
 
-    var keys = [];
-    try {
-      keys = Object.keys(localStorage);
-    } catch (e) {
-      return; // localStorage inaccessible (privacy mode, sandboxed webview, etc.)
-    }
+    backdropOverlay = document.createElement("div");
+    backdropOverlay.id = "abyss-spotlight-backdrop";
+    backdropLayerA = document.createElement("div");
+    backdropLayerB = document.createElement("div");
+    backdropLayerA.className = "abyss-spotlight-backdrop-layer";
+    backdropLayerB.className = "abyss-spotlight-backdrop-layer";
+    backdropOverlay.appendChild(backdropLayerA);
+    backdropOverlay.appendChild(backdropLayerB);
 
-    for (var i = 0; i < keys.length; i++) {
-      var key = keys[i];
-      if (key && key.indexOf("-appTheme", key.length - "-appTheme".length) !== -1) {
-        safe(function (k) {
-          localStorage.setItem(k, "dark");
-        }.bind(null, key));
-      }
-    }
+    container.parentNode.insertBefore(backdropOverlay, container.nextSibling);
 
+    var style = document.createElement("style");
+    style.id = "abyss-spotlight-backdrop-style";
+    style.textContent =
+      "#abyss-spotlight-backdrop{position:fixed;inset:0;pointer-events:none;opacity:0;transition:opacity .6s ease;}" +
+      "html.abyss-spotlight-visible #abyss-spotlight-backdrop{opacity:1;}" +
+      ".abyss-spotlight-backdrop-layer{position:absolute;inset:0;background-size:cover;background-position:center;opacity:0;" +
+      "transition:opacity .9s ease;filter:blur(var(--abyss-backdrop-blur,23px)) saturate(120%) contrast(120%) brightness(25%);}" +
+      ".abyss-spotlight-backdrop-layer.is-active{opacity:1;}";
+    document.head.appendChild(style);
+  }
+
+  function setSpotlightBackdrop(url) {
+    if (!url || !backdropOverlay) return;
     safe(function () {
-      if (Storage.prototype.setItem.__abyssWrapped) return;
-      var setItem = Storage.prototype.setItem;
-      var wrapped = function (key, value) {
-        var isTheme = typeof key === "string" && key.indexOf("-appTheme", key.length - "-appTheme".length) !== -1;
-        setItem.call(this, key, isTheme ? "dark" : value);
+      var incoming = activeBackdropLayer === backdropLayerA ? backdropLayerB : backdropLayerA;
+      var outgoing = activeBackdropLayer;
+
+      var img = new Image();
+      img.onload = function () {
+        safe(function () {
+          incoming.style.backgroundImage = 'url("' + url + '")';
+          requestAnimationFrame(function () {
+            incoming.classList.add("is-active");
+            if (outgoing && outgoing !== incoming) {
+              setTimeout(function () {
+                outgoing.classList.remove("is-active");
+              }, 50);
+            }
+          });
+          activeBackdropLayer = incoming;
+        });
       };
-      wrapped.__abyssWrapped = true;
-      Storage.prototype.setItem = wrapped;
+      img.src = url;
     });
   }
 
@@ -97,6 +161,96 @@
     });
   }
 
+
+  var spotlightFocused = false;
+
+  function isEditableElement(el) {
+    var tag = el && el.tagName;
+    return tag === "INPUT" || tag === "TEXTAREA" || (el && el.isContentEditable);
+  }
+
+  function nearestFocusable(originRect, direction, pool) {
+    var originX = originRect.left + originRect.width / 2;
+    var originY = direction === "up" ? originRect.top : originRect.bottom;
+
+    var candidates = pool.filter(function (el) {
+      if (!el.isConnected) return false;
+      var r = el.getBoundingClientRect();
+      if (r.width === 0 || r.height === 0) return false;
+      return direction === "down" ? r.top >= originRect.bottom - 4 : r.bottom <= originRect.top + 4;
+    });
+
+    if (!candidates.length) return null;
+
+    candidates.sort(function (a, b) {
+      var ra = a.getBoundingClientRect();
+      var rb = b.getBoundingClientRect();
+      var da = Math.hypot(ra.left + ra.width / 2 - originX, ra.top - originY);
+      var db = Math.hypot(rb.left + rb.width / 2 - originX, rb.top - originY);
+      return da - db;
+    });
+
+    return candidates[0];
+  }
+
+  function enterSpotlight(iframe) {
+    spotlightFocused = true;
+    safe(function () { iframe.focus(); });
+    postToFrame(iframe, "tv-focus");
+  }
+
+  document.addEventListener("keydown", function (event) {
+    if (spotlightFocused) return; // events go straight to the iframe's own document while it holds focus
+    if (!currentIframe || !currentIframe.isConnected) return;
+    if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+
+    var active = document.activeElement;
+    if (!active || active === document.body || isEditableElement(active)) return;
+
+    var direction = event.key === "ArrowDown" ? "down" : "up";
+    var pool = Array.prototype.slice.call(document.querySelectorAll(".focusable")).concat([currentIframe]);
+    var nearest = nearestFocusable(active.getBoundingClientRect(), direction, pool);
+
+    if (nearest === currentIframe) {
+      event.preventDefault();
+      event.stopPropagation();
+      enterSpotlight(currentIframe);
+    }
+  }, true); // capture phase... runs before Jellyfin's own keydown handling
+
+  function focusNearestOutside(iframe, direction) {
+    try {
+      var rect = iframe.getBoundingClientRect();
+      var pool = Array.prototype.slice
+        .call(document.querySelectorAll(".focusable"))
+        .filter(function (el) { return el !== iframe; });
+      var nearest = nearestFocusable(rect, direction, pool);
+      if (!nearest) return false;
+      nearest.focus();
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  window.addEventListener("message", function (event) {
+    if (!currentIframe || event.source !== currentIframe.contentWindow) return;
+    if (!event.data || event.data.type !== "abyss-spotlight") return;
+    if (event.data.action === "leave") {
+      spotlightFocused = false;
+      safe(function () {
+        focusNearestOutside(currentIframe, event.data.direction || "down");
+      });
+      return;
+    }
+    if (event.data.action === "backdrop-sync") {
+      if (document.documentElement.classList.contains("abyss-spotlight-visible")) {
+        setSpotlightBackdrop(event.data.url);
+      }
+      return;
+    }
+  });
+
   function isRouteVisible(indexPage, homeTab) {
     if (!indexPage || !indexPage.isConnected || !homeTab || !homeTab.isConnected) return false;
     if (document.hidden) return false;
@@ -112,13 +266,19 @@
 
     var sync = function () {
       safe(function () {
+        if (!iframe || !iframe.isConnected) {
+          clearSpotlightLifecycle();
+          return;
+        }
         var favoritesActive = !!(favoritesTab && favoritesTab.classList && favoritesTab.classList.contains("is-active"));
         var active = isRouteVisible(indexPage, homeTab) && !favoritesActive;
         var action = active ? "resume" : "pause";
+        document.documentElement.classList.toggle("abyss-spotlight-visible", active);
         iframe.style.display = active ? "block" : "none";
         if (action !== lastAction) {
           postToFrame(iframe, action);
           lastAction = action;
+          if (action === "pause") clearSpotlightBackdrop();
         }
       });
     };
@@ -129,6 +289,12 @@
         lifecycleObserver.observe(indexPage, { attributes: true, attributeFilter: ["class", "hidden"] });
         lifecycleObserver.observe(homeTab, { attributes: true, attributeFilter: ["class", "style"] });
         if (favoritesTab) lifecycleObserver.observe(favoritesTab, { attributes: true, attributeFilter: ["class"] });
+        var ancestor = indexPage.parentElement;
+        while (ancestor) {
+          lifecycleObserver.observe(ancestor, { attributes: true, attributeFilter: ["class", "hidden", "style"] });
+          if (ancestor === document.body) break;
+          ancestor = ancestor.parentElement;
+        }
       });
     }
 
@@ -171,22 +337,36 @@
     var installed = false;
     safe(function () {
       var indexPage = findVisibleById("indexPage");
-      if (!indexPage) return;
+      if (!indexPage) {
+        clearSpotlightLifecycle();
+        return;
+      }
       var homeTab = indexPage.querySelector("#homeTab");
-      if (!homeTab) return;
+      if (!homeTab) {
+        clearSpotlightLifecycle();
+        return;
+      }
       var favoritesTab = indexPage.querySelector("#favoritesTab");
 
       installFrameStyle();
+      installBackdropOverlay();
 
       var iframe = homeTab.querySelector ? homeTab.querySelector("." + FRAME_CLASS) : null;
       if (!iframe) {
         iframe = document.createElement("iframe");
-        iframe.className = FRAME_CLASS;
+        iframe.className = FRAME_CLASS + " focusable";
+        iframe.setAttribute("tabindex", "0");
         iframe.src = spotlightUrl;
         iframe.title = "Abyss Spotlight";
+        iframe.addEventListener("blur", function () { spotlightFocused = false; });
         var sections = homeTab.querySelector ? homeTab.querySelector(".sections") : null;
         homeTab.insertBefore(iframe, sections || homeTab.firstChild);
       }
+
+      safe(function () {
+        if (indexPage.classList) indexPage.classList.add("abyss-spotlight-active");
+        if (homeTab.classList) homeTab.classList.add("abyss-spotlight-active");
+      });
 
       if (
         indexPage !== currentIndexPage ||
@@ -206,8 +386,6 @@
   }
 
   function boot() {
-    safe(forceDarkTheme);
-
     var installScheduled = false;
 
     var scheduleInstall = function () {
@@ -242,10 +420,9 @@
       });
     }
 
-    // Safety-net poll: re-verifies element connectivity AND forces a fresh
-    // visibility sync every 2s, so any stale is-active/hide state left over
-    // from an SPA nav-button route change self-corrects without needing a
-    // hard refresh.
+    // Safety-net poll: re-verifies element connectivity and forces a fresh
+    // visibility sync every 2s, so stale SPA navigation state self-corrects
+    // without needing a hard refresh.
     setInterval(function () {
       scheduleInstall();
       if (currentSync) safe(currentSync);

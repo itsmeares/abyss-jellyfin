@@ -36,6 +36,16 @@ test('installers preserve unrelated custom css', () => {
   assert.doesNotMatch(powershell, /\.CustomCss\s*=\s*""/);
 });
 
+test('installers use Jellyfin 12 standard authorization headers', () => {
+  for (const source of [shell, powershell]) {
+    assert.doesNotMatch(source, /X-Emby-Authorization/i);
+    assert.match(source, /Authorization/);
+    assert.match(source, /MediaBrowser Client=/);
+  }
+  assert.equal(shell.match(/-H "Authorization:/g)?.length, 8);
+  assert.equal(powershell.match(/"Authorization"\s*=/g)?.length, 2);
+});
+
 test('shell css transform is idempotent and uninstall is surgical', { skip: process.platform === 'win32' }, () => {
   const setupPath = fileURLToPath(new URL('../setup.sh', import.meta.url));
   const runTransform = (mode, input) => spawnSync(
